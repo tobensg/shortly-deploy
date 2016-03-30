@@ -3,6 +3,17 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     concat: {
+      options: {
+        separator: ';',
+      },
+      libs: {
+        src: ['public/lib/underscore.js', 'public/lib/jquery.js', 'public/lib/handlebars.js', 'public/lib/backbone.js'],
+        dest: 'public/prod/lib_bundle.js',
+      },
+      app: {
+        src: ['public/client/app.js', 'public/client/createLinkView.js', 'public/client/link.js', 'public/client/links.js', 'public/client/linksView.js', 'public/client/linkView.js', 'public/client/router.js' ],
+        dest: 'public/prod/bundle.js'
+      }
     },
 
     mochaTest: {
@@ -21,31 +32,57 @@ module.exports = function(grunt) {
     },
 
     uglify: {
+      lib: {
+        files: {
+          'public/prod/lib_bundle.min.js': ['public/prod/lib_bundle.js']
+        }
+      },
+      app: {
+        files: {
+          'public/prod/bundle.min.js': ['public/prod/bundle.js']
+        }
+      }
     },
 
     eslint: {
-      target: [
-        // Add list of files to lint here
-      ]
+      target: ['public/client/*.js', 'app/config.js', 'server.js', 'server-config.js']
     },
 
     cssmin: {
     },
 
+    gitpush: {
+      live: {
+        options: {
+          remote: 'live'
+        }
+      }  
+    },
+
     watch: {
-      scripts: {
+      clientScripts: {
         files: [
           'public/client/**/*.js',
           'public/lib/**/*.js',
         ],
         tasks: [
           'concat',
-          'uglify'
+          'uglify',
         ]
       },
-      css: {
-        files: 'public/*.css',
-        tasks: ['cssmin']
+
+      scripts: {
+        files: ['public/client/*.js', 'app/config.js', 'server.js', 'server-config.js'],
+        tasks: ['eslint']
+      }
+    },
+
+    concurrent: {
+      dev: {
+        tasks: ['nodemon', 'watch'],
+        options: {
+          logConcurrentOutput: true
+        }
       }
     },
 
@@ -63,6 +100,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-shell');
   grunt.loadNpmTasks('grunt-nodemon');
+  grunt.loadNpmTasks('grunt-git');
+  grunt.loadNpmTasks('grunt-concurrent');
 
   grunt.registerTask('server-dev', function (target) {
     // Running nodejs in a different process and displaying output on the main console
@@ -104,9 +143,6 @@ module.exports = function(grunt) {
     }
   });
 
-  grunt.registerTask('deploy', [
-    // add your deploy tasks here
-  ]);
-
-
+  grunt.registerTask('deploy', ['eslint', 'test', 'gitpush']);
+  grunt.registerTask('default', ['concurrent', 'nodemon', 'watch']);
 };
