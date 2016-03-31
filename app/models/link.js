@@ -26,13 +26,13 @@ var linkSchema = db.Schema({
   timestamp: {type: Date, default: Date.now()}
 });
 
-linkSchema.methods.makeCode = function() {
+linkSchema.pre('save', function(next) {
   console.log('*************************** making code *******************************');
   var shasum = crypto.createHash('sha1');
   shasum.update(this.url);
   this.code = shasum.digest('hex').slice(0, 5);
-  return this;
-};
+  next();
+});
 
 var Link = db.model('Link', linkSchema);
 
