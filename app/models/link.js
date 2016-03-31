@@ -27,7 +27,6 @@ var linkSchema = db.Schema({
 });
 
 linkSchema.pre('save', function(next) {
-  console.log('*************************** making code *******************************');
   var shasum = crypto.createHash('sha1');
   shasum.update(this.url);
   this.code = shasum.digest('hex').slice(0, 5);
